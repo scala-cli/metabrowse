@@ -93,19 +93,82 @@ lazy val example = project
     test := {} // no need to run paiges tests.
   )
 
+val needsPatchedWildfly = Properties.isWin
+
+lazy val maybeAddPatchedWildfly =
+  if (needsPatchedWildfly)
+    Def.settings(
+      Compile / unmanagedJars += {
+        import java.io._
+        import java.util.zip._
+        import scala.collection.JavaConverters._
+        import sys.process._
+        val baseJarPath = Seq("cs", "fetch", "--intransitive", "org.wildfly.common:wildfly-common:1.5.2.Final").!!.linesIterator.map(_.trim).filter(_.nonEmpty).toStream.head
+        val baseJar = Paths.get(baseJarPath)
+        val tmpDir = baseDirectory.value.toPath.resolve("target/patched-jar")
+        Files.createDirectories(tmpDir)
+        val destJar = tmpDir.resolve("wildfly-common-patched.jar")
+
+        def strip(name: String): Boolean =
+          name.startsWith("org/wildfly/common/net/Substitutions")
+
+          var zf: ZipFile = null
+          var fos: FileOutputStream = null
+          var zos: ZipOutputStream = null
+          try {
+            zf = new ZipFile(baseJar.toFile)
+            fos = new FileOutputStream(destJar.toFile)
+            zos = new ZipOutputStream(fos)
+            val buf = Array.ofDim[Byte](64*1024)
+            for (ent <- zf.entries.asScala if !strip(ent.getName)) {
+              zos.putNextEntry(ent)
+              var is: InputStream = null
+              try {
+                is = zf.getInputStream(ent)
+                var read = -1
+                while ({
+                  read = is.read(buf)
+                  read >= 0
+                }) {
+                  if (read > 0)
+                    zos.write(buf, 0, read)
+                }
+              } finally {
+                if (is != null)
+                  is.close()
+              }
+            }
+            zos.finish()
+          } finally {
+            if (zf != null) zf.close()
+            if (zos != null) zos.close()
+            if (fos != null) fos.close()
+          }
+
+        destJar.toFile
+      }
+    )
+  else
+    Def.settings()
+
 lazy val server = project
   .in(file("metabrowse-server"))
   .settings(
     moduleName := "metabrowse-server",
     resolvers += Resolver.sonatypeRepo("releases"),
     resolvers += Resolver.sonatypeRepo("snapshots"),
-    libraryDependencies ++= List(
-      "io.undertow" % "undertow-core" % "2.0.30.Final",
-      "org.slf4j" % "slf4j-api" % "1.8.0-beta4",
-      "org.jboss.xnio" % "xnio-nio" % "3.8.0.Final",
-      "org.scalameta" % "semanticdb-scalac-core" % Version.scalameta cross CrossVersion.full,
-      ("org.scalameta" %% "mtags" % "0.10.5").cross(CrossVersion.full)
-    ),
+    libraryDependencies ++= {
+      val undertow = "io.undertow" % "undertow-core" % "2.0.30.Final"
+      val xnio = "org.jboss.xnio" % "xnio-nio" % "3.8.0.Final"
+      List(
+        if (needsPatchedWildfly) undertow.exclude("org.wildfly.common", "wildfly-common") else undertow,
+        "org.slf4j" % "slf4j-api" % "1.8.0-beta4",
+        if (needsPatchedWildfly) xnio.exclude("org.wildfly.common", "wildfly-common") else xnio,
+        "org.scalameta" % "semanticdb-scalac-core" % Version.scalameta cross CrossVersion.full,
+        ("org.scalameta" %% "mtags" % "0.10.5").cross(CrossVersion.full)
+      )
+    },
+    maybeAddPatchedWildfly,
     (Compile / packageBin) := {
       import java.io.FileOutputStream
       import java.nio.file.attribute.FileTime
