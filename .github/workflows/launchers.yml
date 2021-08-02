@@ -28,7 +28,7 @@ jobs:
         if: runner.os != 'Windows'
         env:
           SCALA_VERSION: ${{ matrix.scala }}
-      - run: sbt.bat ++%SCALA_VERSION% server-cli/copyNativeImage
+      - run: project/generate-native-image.bat
         if: runner.os == 'Windows'
         env:
           SCALA_VERSION: ${{ matrix.scala }}
