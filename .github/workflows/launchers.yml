@@ -34,7 +34,7 @@ jobs:
           SCALA_VERSION: ${{ matrix.scala }}
       - uses: actions/upload-artifact@v2.2.4
         with:
-          name: launchers
+          name: launcher-${{ matrix.scala }}-${{ matrix.os }}
           path: artifacts/
           if-no-files-found: error
           retention-days: 2
