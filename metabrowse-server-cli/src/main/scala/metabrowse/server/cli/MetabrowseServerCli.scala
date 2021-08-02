@@ -54,7 +54,10 @@ object MetabrowseServerCli extends CaseApp[Options] {
       System.err.println(message)
       while (System.in.read() != -1) {}
     } finally {
-      server.stop()
+      try server.stop()
+      catch {
+        case t: Throwable =>
+      }
     }
   }
 
