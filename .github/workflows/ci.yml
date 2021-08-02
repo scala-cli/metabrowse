@@ -20,9 +20,11 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: olafurpg/setup-scala@v12
+      - uses: coursier/cache-action@v6.3
+      - uses: coursier/setup-action@v1
         with:
-          java-version: "adopt@1.${{ matrix.java }}"
+          jvm: ${{ matrix.java }}
+          apps: sbt-launcher
       - run: sbt ci-test
         env:
           SCALA_VERSION: ${{ matrix.scala }}

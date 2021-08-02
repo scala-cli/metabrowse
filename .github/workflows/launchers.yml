@@ -19,9 +19,11 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: olafurpg/setup-scala@v12
+      - uses: coursier/cache-action@v6.3
+      - uses: coursier/setup-action@v1
         with:
-          java-version: "adopt@1.8"
+          jvm: 8
+          apps: sbt-launcher
       - run: sbt ++$SCALA_VERSION server-cli/copyNativeImage
         shell: bash
         env:
