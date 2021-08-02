@@ -1,4 +1,5 @@
-import java.nio.file.{Files, Paths}
+import java.io.File
+import java.nio.file.{Files, Path, Paths}
 import scala.util.Properties
 import scalapb.compiler.Version.scalapbVersion
 import scalajsbundler.util.JSON._
@@ -146,7 +147,7 @@ lazy val server = project
             targetDir./("vs").allPaths +++
             targetDir.*(includes)
         ) --- targetDir
-      val mappings = paths.get pair Path.relativeTo(targetDir)
+      val mappings = paths.get pair sbt.io.Path.relativeTo(targetDir)
       val prefix = "metabrowse/server/assets/"
       for ((f, path) <- mappings) {
         if (f.isDirectory) {
@@ -204,6 +205,38 @@ lazy val `server-cli` = project
       libraryDependencies.value.filter { mod =>
         !mod.revision.startsWith("101")
       }
+    },
+    nativeImageJvmIndex := "https://github.com/coursier/jvm-index/raw/master/index.json",
+    nativeImageCoursier := {
+
+      def endsWithCaseInsensitive(s: String, suffix: String): Boolean =
+        s.length >= suffix.length &&
+          s.regionMatches(true, s.length - suffix.length, suffix, 0, suffix.length)
+
+      def findInPath(app: String): Option[Path] = {
+        val asIs = Paths.get(app)
+        if (Paths.get(app).getNameCount >= 2) Some(asIs)
+        else {
+          def pathEntries =
+            Option(System.getenv("PATH"))
+              .iterator
+              .flatMap(_.split(File.pathSeparator).iterator)
+          def pathSep =
+            if (Properties.isWin) Option(System.getenv("PATHEXT")).iterator.flatMap(_.split(File.pathSeparator).iterator)
+            else Iterator("")
+          def matches = for {
+            dir <- pathEntries
+            ext <- pathSep
+            app0 = if (endsWithCaseInsensitive(app, ext)) app else app + ext
+            path = Paths.get(dir).resolve(app0)
+            if Files.isExecutable(path)
+          } yield path
+          matches.toStream.headOption
+        }
+      }
+
+      val previous = nativeImageCoursier.value
+      findInPath("cs").map(_.toFile).getOrElse(previous)
     },
     nativeImageVersion := "21.1.0",
     copyNativeImage := {
