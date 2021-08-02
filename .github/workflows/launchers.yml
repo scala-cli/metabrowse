@@ -1,0 +1,33 @@
+name: Launchers
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+jobs:
+  unit:
+    name: Launchers
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        scala: [2.12.14, 2.13.6]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: olafurpg/setup-scala@v12
+        with:
+          java-version: "adopt@1.8"
+      - run: sbt ++$SCALA_VERSION server-cli/copyNativeImage
+        shell: bash
+        env:
+          SCALA_VERSION: ${{ matrix.scala }}
+      - uses: actions/upload-artifact@v2.2.4
+        with:
+          name: launchers
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 2

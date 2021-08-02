@@ -1,3 +1,5 @@
+import java.nio.file.{Files, Paths}
+import scala.util.Properties
 import scalapb.compiler.Version.scalapbVersion
 import scalajsbundler.util.JSON._
 import sbtcrossproject.{crossProject, CrossType}
@@ -165,9 +167,56 @@ lazy val server = project
       fos.close()
 
       updated
-    }
+    },
+    exportJars := true
   )
   .dependsOn(coreJVM)
+
+lazy val copyNativeImage = taskKey[Unit]("")
+
+def platformSuffix: String = {
+  val arch = sys.props("os.arch").toLowerCase(java.util.Locale.ROOT) match {
+    case "amd64" => "x86_64"
+    case other => other
+  }
+  val os =
+    if (Properties.isWin) "pc-win32"
+    else if (Properties.isLinux) "pc-linux"
+    else if (Properties.isMac) "apple-darwin"
+    else sys.error(s"Unrecognized OS: ${sys.props("os.name")}")
+  s"$arch-$os"
+}
+
+lazy val `server-cli` = project
+  .in(file("metabrowse-server-cli"))
+  .enablePlugins(NativeImagePlugin)
+  .settings(
+    moduleName := "metabrowse-server-cli",
+    Compile / mainClass := Some("metabrowse.server.cli.MetabrowseServerCli"),
+    (assembly / mainClass) := Some("metabrowse.server.cli.MetabrowseServerCli"),
+    (assembly / assemblyJarName) := "metabrowse-server.jar",
+    libraryDependencies ++= List(
+      "com.github.alexarchambault" %% "case-app" % "2.1.0-M2",
+      "org.scalameta" %% "svm-subs" % "20.2.0",
+      "org.graalvm.nativeimage" % "svm" % nativeImageVersion.value
+    ),
+    libraryDependencies := {
+      libraryDependencies.value.filter { mod =>
+        !mod.revision.startsWith("101")
+      }
+    },
+    nativeImageVersion := "21.1.0",
+    copyNativeImage := {
+      val executable = nativeImage.value
+      val destDir = Paths.get("artifacts")
+      val ext = if (Properties.isWin) ".exe" else ""
+      val dest = destDir.resolve(s"metabrowse-$platformSuffix$ext")
+      Files.createDirectories(destDir)
+      Files.copy(executable.toPath, dest)
+      System.err.println(s"Copied native image to $dest")
+    }
+  )
+  .dependsOn(server)
 
 lazy val cli = project
   .in(file("metabrowse-cli"))
