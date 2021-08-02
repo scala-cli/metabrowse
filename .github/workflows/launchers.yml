@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - server-bin
   pull_request:
 jobs:
   unit:
