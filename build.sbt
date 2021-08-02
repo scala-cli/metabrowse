@@ -300,7 +300,7 @@ lazy val `server-cli` = project
 
       findInPath("cs").map(_.toFile).getOrElse(sys.error("cs not found"))
     },
-    nativeImageVersion := "21.1.0",
+    nativeImageVersion := "21.2.0",
     copyNativeImage := {
       val executable = nativeImage.value
       val destDir = Paths.get("artifacts")
