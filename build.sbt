@@ -302,10 +302,11 @@ lazy val `server-cli` = project
     },
     nativeImageVersion := "21.2.0",
     copyNativeImage := {
+      val sv = scalaVersion.value
       val executable = nativeImage.value
       val destDir = Paths.get("artifacts")
       val ext = if (Properties.isWin) ".exe" else ""
-      val dest = destDir.resolve(s"metabrowse-$platformSuffix$ext")
+      val dest = destDir.resolve(s"metabrowse-scala-$sv-$platformSuffix$ext")
       Files.createDirectories(destDir)
       Files.copy(executable.toPath, dest)
       System.err.println(s"Copied native image to $dest")

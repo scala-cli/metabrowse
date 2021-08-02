@@ -10,5 +10,5 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 call "D:\a\metabrowse\metabrowse\null\Coursier\cache\jvm\graalvm-java11@21.2.0\bin\native-image.cmd" -cp metabrowse-server-cli\target\native-image-internal\manifest.jar metabrowse.server.cli.MetabrowseServerCli server-cli
 if %errorlevel% neq 0 exit /b %errorlevel%
 mkdir artifacts\
-xcopy server-cli.exe artifacts\
+copy server-cli.exe artifacts\metabrowse-scala-%SCALA_VERSION%-x86_64-pc-win32.exe
 if %errorlevel% neq 0 exit /b %errorlevel%
