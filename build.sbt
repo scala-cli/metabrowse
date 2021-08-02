@@ -9,6 +9,8 @@ lazy val Version = new {
   def scala213 = "2.13.6"
   def scala212 = "2.12.14"
   def scalameta = "4.4.24"
+
+  def extraScala = Seq("2.13.5", "2.13.4", "2.12.13", "2.12.12")
 }
 
 inThisBuild(
@@ -38,7 +40,7 @@ inThisBuild(
     crossScalaVersions := Seq(
       Version.scala213,
       Version.scala212
-    ),
+    ) ++ Version.extraScala,
     scalacOptions := Seq(
       "-deprecation",
       "-encoding",
@@ -267,6 +269,23 @@ lazy val `server-cli` = project
     libraryDependencies := {
       libraryDependencies.value.filter { mod =>
         !mod.revision.startsWith("101")
+      }
+    },
+    Compile / unmanagedSourceDirectories ++= {
+      val srcBaseDir = baseDirectory.value
+      val scalaVersion0 = scalaVersion.value
+      def extraDirs(suffix: String) =
+        List(srcBaseDir / "src" / "main" / s"scala$suffix")
+      Some(scalaVersion0.split('.')).filter(_.forall(_.forall(_.isDigit))).collect { case Array(a, b, c) => (a.toInt, b.toInt, c.toInt) } match {
+        case Some((2, 12, n)) if n <= 13 =>
+          extraDirs("-2.12.13-")
+        case Some((2, 12, n)) if n >= 14 =>
+          extraDirs("-2.12.14+")
+        case Some((2, 13, n)) if n <= 5 =>
+          extraDirs("-2.13.5-")
+        case Some((2, 13, n)) if n >= 6 =>
+          extraDirs("-2.13.6+")
+        case _ => Nil
       }
     },
     nativeImageJvmIndex := "https://github.com/coursier/jvm-index/raw/master/index.json",
