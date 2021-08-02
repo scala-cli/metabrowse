@@ -5,7 +5,6 @@ addSbtPlugin("com.thesamet" % "sbt-protoc" % "1.0.4")
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.5.1")
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.1.0")
 addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.5.3")
-addSbtPlugin("org.scalameta" % "sbt-native-image" % "0.3.1")
 
 libraryDependencies ++= List(
   "io.github.bonigarcia" % "webdrivermanager" % "3.6.1",

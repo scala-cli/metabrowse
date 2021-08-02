@@ -253,7 +253,7 @@ def platformSuffix: String = {
 
 lazy val `server-cli` = project
   .in(file("metabrowse-server-cli"))
-  .enablePlugins(NativeImagePlugin)
+  .enablePlugins(CustomNativeImagePlugin)
   .settings(
     moduleName := "metabrowse-server-cli",
     Compile / mainClass := Some("metabrowse.server.cli.MetabrowseServerCli"),
@@ -298,8 +298,7 @@ lazy val `server-cli` = project
         }
       }
 
-      val previous = nativeImageCoursier.value
-      findInPath("cs").map(_.toFile).getOrElse(previous)
+      findInPath("cs").map(_.toFile).getOrElse(sys.error("cs not found"))
     },
     nativeImageVersion := "21.1.0",
     copyNativeImage := {
