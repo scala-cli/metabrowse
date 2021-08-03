@@ -30,7 +30,14 @@ jobs:
           jvm: 8
           apps: sbt-launcher
       - run: cd native && ./mill -i "native[$SCALA_VERSION].copyToArtifacts" ../artifacts/
-        shell: bash
+        if: runner.os != 'Windows'
+        env:
+          SCALA_VERSION: ${{ matrix.scala }}
+      - run: |
+          cd native
+          mill -i "native[%SCALA_VERSION%].copyToArtifacts" ../artifacts/
+        shell: cmd
+        if: runner.os == 'Windows'
         env:
           SCALA_VERSION: ${{ matrix.scala }}
       - uses: actions/upload-artifact@v2.2.4
