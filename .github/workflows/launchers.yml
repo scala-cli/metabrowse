@@ -13,6 +13,12 @@ jobs:
       matrix:
         scala: [2.12.12, 2.12.13, 2.12.14, 2.13.4, 2.13.5, 2.13.6]
         os: [ubuntu-latest, windows-2016, macos-latest]
+        exclude:
+          - scala: 2.12.12
+            os: windows-2016
+            # 2.12.12 is the Scala version used by sbt
+            # As a consequence, its Scala JARs have different paths, which
+            # seem to confuse some scalajs-bundler internal stuff.
     steps:
       - uses: actions/checkout@v2
         with:
