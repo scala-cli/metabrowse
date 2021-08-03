@@ -6,8 +6,7 @@ on:
       - server-bin
   pull_request:
 jobs:
-  unit:
-    name: Launchers
+  generate-launchers:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -24,17 +23,34 @@ jobs:
         with:
           jvm: 8
           apps: sbt-launcher
-      - run: sbt ++$SCALA_VERSION server-cli/copyNativeImage
-        if: runner.os != 'Windows'
-        env:
-          SCALA_VERSION: ${{ matrix.scala }}
-      - run: project/generate-native-image.bat
-        if: runner.os == 'Windows'
+      - run: cd native && ./mill -i "native[$SCALA_VERSION].copyToArtifacts" ../artifacts/
+        shell: bash
         env:
           SCALA_VERSION: ${{ matrix.scala }}
       - uses: actions/upload-artifact@v2.2.4
         with:
-          name: launcher-${{ matrix.scala }}-${{ matrix.os }}
+          name: launchers
           path: artifacts/
           if-no-files-found: error
-          retention-days: 2
+          retention-days: 1
+
+  upload-launchers:
+    needs: generate-launchers
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: coursier/setup-action@v1
+      with:
+        jvm: 8
+    - uses: actions/download-artifact@v2
+      with:
+        name: launchers
+        path: artifacts/
+    - run: cd native && ./mill -i upload ../artifacts/
+      env:
+        UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

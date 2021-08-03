@@ -253,6 +253,8 @@ def platformSuffix: String = {
   s"$arch-$os"
 }
 
+lazy val writeCp = taskKey[Unit]("")
+
 lazy val `server-cli` = project
   .in(file("metabrowse-server-cli"))
   .enablePlugins(CustomNativeImagePlugin)
@@ -270,6 +272,11 @@ lazy val `server-cli` = project
       libraryDependencies.value.filter { mod =>
         !mod.revision.startsWith("101")
       }
+    },
+    writeCp := {
+      val cp = fullClasspath.in(Compile).value.map(_.data)
+      val content = cp.mkString(File.pathSeparator)
+      Files.write(Paths.get("server-cli-class-path"), content.getBytes("UTF-8"))
     },
     Compile / unmanagedSourceDirectories ++= {
       val srcBaseDir = baseDirectory.value
