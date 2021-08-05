@@ -266,7 +266,8 @@ lazy val `server-cli` = project
     libraryDependencies ++= List(
       "com.github.alexarchambault" %% "case-app" % "2.1.0-M2",
       "org.scalameta" %% "svm-subs" % "20.2.0",
-      "org.graalvm.nativeimage" % "svm" % nativeImageVersion.value
+      "org.graalvm.nativeimage" % "svm" % nativeImageVersion.value,
+      "org.slf4j" % "slf4j-nop" % "1.8.0-beta4"
     ),
     libraryDependencies := {
       libraryDependencies.value.filter { mod =>
