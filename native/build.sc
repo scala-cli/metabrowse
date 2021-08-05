@@ -9,6 +9,8 @@ import io.github.alexarchambault.millnativeimage.NativeImage
 import io.github.alexarchambault.millnativeimage.upload.Upload
 import mill._
 
+import scala.util.Properties
+
 def scalaVersions = Seq("2.12.12", "2.12.13", "2.12.14", "2.13.4", "2.13.5", "2.13.6")
 
 object native extends Cross[Native](scalaVersions: _*)
@@ -18,7 +20,8 @@ class Native(private val scalaVersion: String) extends NativeImage {
   def nativeImageName = "metabrowse"
   def classPath = T{
     // cache this?
-    os.proc("sbt", s"++$scalaVersion", "server-cli/writeCp").call(
+    val sbt = if (Properties.isWin) "sbt.bat" else "sbt"
+    os.proc(sbt, s"++$scalaVersion", "server-cli/writeCp").call(
       cwd = os.pwd / os.up,
       stdout = os.Inherit
     )
