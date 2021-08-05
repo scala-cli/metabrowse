@@ -1,6 +1,6 @@
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.1`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image_mill0.9:0.1.6`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.6`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image_mill0.9:0.1.7`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.7`
 
 import java.io.File
 
@@ -16,6 +16,7 @@ def scalaVersions = Seq("2.12.12", "2.12.13", "2.12.14", "2.13.4", "2.13.5", "2.
 object native extends Cross[Native](scalaVersions: _*)
 
 class Native(private val scalaVersion: String) extends NativeImage {
+  def nativeImagePersist = System.getenv("CI") != null
   def nativeImageGraalVmJvmId = "graalvm-java11:21.2.0"
   def nativeImageName = "metabrowse"
   def classPath = T{

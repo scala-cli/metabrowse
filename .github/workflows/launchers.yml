@@ -29,13 +29,19 @@ jobs:
         with:
           jvm: 8
           apps: sbt-launcher
-      - run: cd native && ./mill -i "native[$SCALA_VERSION].copyToArtifacts" ../artifacts/
+      - run: |
+          cd native && \
+          ./mill -i "native[$SCALA_VERSION].writeNativeImageScript" generate.sh && \
+          ./generate.sh && \
+          ./mill -i "native[$SCALA_VERSION].copyToArtifacts" ../artifacts/
         if: runner.os != 'Windows'
         env:
           SCALA_VERSION: ${{ matrix.scala }}
       - run: |
           cd native
-          mill -i "native[%SCALA_VERSION%].copyToArtifacts" ../artifacts/
+          @call ./mill.bat -i "native[%SCALA_VERSION%].writeNativeImageScript" generate.bat
+          @call generate.bat
+          @call ./mill.bat -i "native[%SCALA_VERSION%].copyToArtifacts" ../artifacts/
         shell: cmd
         if: runner.os == 'Windows'
         env:
