@@ -48,7 +48,7 @@ class Native(private val scalaVersion: String) extends NativeImage {
     val _ = Upload.copyLauncher(
       nativeImage().path,
       directory,
-      "metabrowse",
+      s"metabrowse-$scalaVersion",
       compress = true
     )
   }
