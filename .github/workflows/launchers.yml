@@ -42,29 +42,11 @@ jobs:
           SCALA_VERSION: ${{ matrix.scala }}
       - uses: actions/upload-artifact@v2.2.4
         with:
-          name: launchers
+          name: launcher-${{ matrix.scala }}-${{ matrix.os }}
           path: artifacts/
           if-no-files-found: error
           retention-days: 1
-
-  upload-launchers:
-    needs: generate-launchers
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-        submodules: true
-    - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1
-      with:
-        jvm: 8
-        apps: sbt-launcher
-    - uses: actions/download-artifact@v2
-      with:
-        name: launchers
-        path: artifacts/
-    - run: cd native && ./mill -i upload ../artifacts/
-      env:
-        UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: cd native && ./mill -i upload ../artifacts/
+        if: github.event_name == 'push'
+        env:
+          UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
