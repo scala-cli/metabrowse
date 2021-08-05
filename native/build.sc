@@ -1,6 +1,6 @@
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.1`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image_mill0.9:0.1.3`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.3`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image_mill0.9:0.1.6`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.6`
 
 import java.io.File
 
