@@ -15,6 +15,9 @@ import java.net.ServerSocket
 object MetabrowseServerCli extends CaseApp[Options] {
   def run(options: Options, args: RemainingArgs): Unit = {
 
+    // silence undertow logging
+    sys.props("org.jboss.logging.provider") = "slf4j"
+
     val port =
       if (options.port >= 0) options.port
       else randomPort()
