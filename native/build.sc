@@ -11,7 +11,7 @@ import mill._
 
 import scala.util.Properties
 
-def scala212Versions = (8 to 14).map("2.12." + _)
+def scala212Versions = (8 to 15).map("2.12." + _)
 def scala213Versions = (1 to 6).map("2.13." + _)
 def scalaVersions = scala212Versions ++ scala213Versions
 
