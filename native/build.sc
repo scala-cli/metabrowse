@@ -11,7 +11,9 @@ import mill._
 
 import scala.util.Properties
 
-def scalaVersions = Seq("2.12.12", "2.12.13", "2.12.14", "2.13.4", "2.13.5", "2.13.6")
+def scala212Versions = (8 to 14).map("2.12." + _)
+def scala213Versions = (1 to 6).map("2.13." + _)
+def scalaVersions = scala212Versions ++ scala213Versions
 
 object native extends Cross[Native](scalaVersions: _*)
 
