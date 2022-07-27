@@ -6,9 +6,11 @@ import scalajsbundler.util.JSON._
 import sbtcrossproject.{crossProject, CrossType}
 
 lazy val Version = new {
-  def scala213 = "2.13.6"
-  def scala212 = "2.12.14"
-  def scalameta = "4.4.24"
+  val scala213Versions = (0 to 6).map(p => s"2.13.$p")
+  val scala212Versions = (8 to 15).map(p => s"2.12.$p")
+  def scala213 = scala213Versions.last
+  def scala212 = scala212Versions.last
+  def scalameta = "4.4.33"
 
   def extraScala = Seq("2.13.5", "2.13.4", "2.12.13", "2.12.12")
 }
@@ -55,6 +57,11 @@ inThisBuild(
 
 (publish / skip) := true
 crossScalaVersions := Nil
+
+lazy val fullCrossVersionSettings = Def.settings(
+  crossVersion := CrossVersion.full,
+  crossScalaVersions := Version.scala213Versions ++ Version.scala212Versions
+)
 
 def addPaigesLikeSourceDirs(config: Configuration, srcName: String) =
   Def.settings(
@@ -157,6 +164,7 @@ lazy val server = project
   .in(file("metabrowse-server"))
   .settings(
     moduleName := "metabrowse-server",
+    fullCrossVersionSettings,
     resolvers += Resolver.sonatypeRepo("releases"),
     resolvers += Resolver.sonatypeRepo("snapshots"),
     libraryDependencies ++= {
@@ -167,7 +175,7 @@ lazy val server = project
         "org.slf4j" % "slf4j-api" % "1.8.0-beta4",
         if (needsPatchedWildfly) xnio.exclude("org.wildfly.common", "wildfly-common") else xnio,
         "org.scalameta" % "semanticdb-scalac-core" % Version.scalameta cross CrossVersion.full,
-        ("org.scalameta" %% "mtags" % "0.10.5").cross(CrossVersion.full)
+        ("org.scalameta" %% "mtags" % "0.10.9").cross(CrossVersion.full)
       )
     },
     maybeAddPatchedWildfly,
@@ -178,7 +186,8 @@ lazy val server = project
       import java.util.zip._
       import scala.collection.JavaConverters._
       val base = (Compile / packageBin).value
-      val updated = base.getParentFile / s"${base.getName.stripSuffix(".jar")}-with-resources.jar"
+      val updated =
+        base.getParentFile / s"${base.getName.stripSuffix(".jar")}-with-resources.jar"
 
       val fos = new FileOutputStream(updated)
       val zos = new ZipOutputStream(fos)
@@ -345,6 +354,7 @@ lazy val cli = project
   .in(file("metabrowse-cli"))
   .settings(
     moduleName := "metabrowse-cli",
+    fullCrossVersionSettings,
     (assembly / mainClass) := Some("metabrowse.cli.MetabrowseCli"),
     (assembly / assemblyJarName) := "metabrowse.jar",
     scalacOptions ++= {
@@ -356,7 +366,7 @@ lazy val cli = project
       }
     },
     libraryDependencies ++= List(
-      "com.thesamet.scalapb" %% "scalapb-json4s" % "0.11.1",
+      "com.thesamet.scalapb" %% "scalapb-json4s" % "0.12.0",
       "com.github.alexarchambault" %% "case-app" % "2.0.0-M9",
       "com.github.pathikrit" %% "better-files" % "3.9.1"
     ),
@@ -489,6 +499,7 @@ lazy val tests = project
   .in(file("metabrowse-tests"))
   .configs(IntegrationTest)
   .settings(
+    fullCrossVersionSettings,
     (publish / skip) := true,
     Defaults.itSettings,
     run / baseDirectory := (ThisBuild / baseDirectory).value,
