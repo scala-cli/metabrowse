@@ -2,8 +2,7 @@ name: Launchers
 on:
   push:
     branches:
-      - main
-      - server-bin
+      - master
   pull_request:
 jobs:
   generate-launchers:
@@ -19,6 +18,7 @@ jobs:
           - 2.12.12
           - 2.12.13
           - 2.12.14
+          - 2.12.15
           - 2.13.1
           - 2.13.2
           - 2.13.3
